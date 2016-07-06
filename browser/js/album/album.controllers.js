@@ -22,6 +22,7 @@ juke.factory('StatsFactory', function ($q) {
   return statsObj;
 });
 
+
 juke.factory('AlbumFactory', function($http){
   var albumsObj = {};
 
@@ -39,23 +40,6 @@ juke.factory('AlbumFactory', function($http){
 
 juke.controller('AlbumCtrl', function ($scope, $rootScope, $log, StatsFactory, AlbumFactory, PlayerFactory) {
 
-  AlbumFactory.fetchAll()
-  .then(function(response){
-    return AlbumFactory.fetchById(response.data[0].id);
-  })
-  .then(function(response){
-    $scope.album = response.data;
-    $scope.album.imageUrl = '/api/albums/' + $scope.album.id + '/image';
-    $scope.album.songs.forEach(function (song, i) {
-      song.audioUrl = '/api/songs/' + song.id + '/audio';
-      song.albumIndex = i;
-    });
-    return StatsFactory.totalTime($scope.album);
-  })
-  .then(function(albumDuration){
-    $scope.fullDuration = Math.floor(albumDuration / 60);
-  })
-  .catch($log.error); // $log service can be turned on and off; also, pre-bound
 
   // main toggle
   $scope.toggle = function (song) {
@@ -72,13 +56,38 @@ juke.controller('AlbumCtrl', function ($scope, $rootScope, $log, StatsFactory, A
 
   $scope.isPlaying = function(){
     return PlayerFactory.isPlaying();
-  }
+  };
+
+  $scope.showAlbum = false;
+
+  $rootScope.$on('showSpecificAlbum', function(event, album){
+    AlbumFactory.fetchById(album.id)
+    .then(function(response){
+      $scope.album = response.data;
+      $scope.album.imageUrl = '/api/albums/' + $scope.album.id + '/image';
+      $scope.album.songs.forEach(function (song, i) {
+        song.audioUrl = '/api/songs/' + song.id + '/audio';
+        song.albumIndex = i;
+      });
+      return StatsFactory.totalTime($scope.album);
+    })
+    .then(function(albumDuration){
+      $scope.fullDuration = Math.floor(albumDuration / 60);
+      $scope.showAlbum = true;
+    })
+     .catch($log.error); // $log service can be turned on and off; also, pre-bound
+   });
+
+
+  $rootScope.$on('closeAll', function(){
+    $scope.showAlbum = false;
+  });
 
 
 });
 
 
-juke.controller('AlbumsCtrl', function($scope, $log, AlbumFactory, StatsFactory){
+juke.controller('AlbumsCtrl', function($scope, $log, AlbumFactory, StatsFactory, $rootScope){
   var untouchedAlbums;
   $scope.albums;
 
@@ -104,5 +113,20 @@ juke.controller('AlbumsCtrl', function($scope, $log, AlbumFactory, StatsFactory)
 
   })
   .catch($log.error);
+
+  $scope.showMe = false;
+
+  $rootScope.$on('showAllAlbums', function(){
+    $scope.showMe = true;
+  });
+
+  $rootScope.$on('closeAll', function(){
+    $scope.showMe = false;
+  });
+
+  $scope.showThisAlbum = function(album){
+    $scope.showMe = false;
+    $rootScope.$broadcast('showSpecificAlbum', album);
+  }
 
 });
