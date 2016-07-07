@@ -25,7 +25,7 @@ juke.controller('ArtistsCtrl', function($scope, $rootScope, ArtistFactory) {
 
 });
 
-juke.controller('ArtistCtrl', function($scope, $log,$rootScope, ArtistFactory, PlayerFactory) {
+juke.controller('ArtistCtrl', function($scope, $log,$rootScope, ArtistFactory, PlayerFactory, SongFactory) {
 
   $scope.toggle = function (song) {
     if(PlayerFactory.isPlaying() && song === PlayerFactory.getCurrentSong()){
@@ -56,7 +56,7 @@ juke.controller('ArtistCtrl', function($scope, $log,$rootScope, ArtistFactory, P
     .then(function(response){
       $scope.songs = [];
       response.data.forEach(function(song){
-        song.audioUrl = '/api/songs/' + song.id + '/audio';
+        SongFactory.prepareSong(song);
         $scope.songs.push(song);
       });
       return ArtistFactory.fetchAlbumsById(obj.id);

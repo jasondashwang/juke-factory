@@ -38,7 +38,7 @@ juke.factory('AlbumFactory', function($http){
 })
 
 
-juke.controller('AlbumCtrl', function ($scope, $rootScope, $log, StatsFactory, AlbumFactory, PlayerFactory) {
+juke.controller('AlbumCtrl', function ($scope, $rootScope, $log, StatsFactory, AlbumFactory, PlayerFactory, SongFactory) {
 
 
   // main toggle
@@ -66,7 +66,7 @@ juke.controller('AlbumCtrl', function ($scope, $rootScope, $log, StatsFactory, A
       $scope.album = response.data;
       $scope.album.imageUrl = '/api/albums/' + $scope.album.id + '/image';
       $scope.album.songs.forEach(function (song, i) {
-        song.audioUrl = '/api/songs/' + song.id + '/audio';
+        SongFactory.prepareSong(song);
         song.albumIndex = i;
       });
       return StatsFactory.totalTime($scope.album);
